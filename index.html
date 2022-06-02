@@ -1,0 +1,123 @@
+<html>
+<head>
+    <title>Books API Example</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+
+</head>
+<body>
+<div class="section box">
+    <p class="Title 3">
+        Find a book!
+    </p>
+
+    <div class="field has-addons">
+        <div class="control">
+            <input class="input" name="bookInput" type="text" id="bookInput" placeholder="Book Title">
+        </div>
+        <div class="control">
+            <button class="button is-info" onclick="getBooks()">Find Books</button>
+        </div>
+    </div>
+    <div id="content">
+
+    </div>
+</div>
+
+<div class="section box">
+    <div class="is-grouped columns">
+    <div class="control">
+        <button class="button is-danger" onclick="showBooks()">Show my books</button>
+    </div>
+    </div>
+
+    <div id="mybooks">
+    </div>
+
+</div>
+<!-- Form for adding a new book with post request to localhost:4000/addbook and booktitle and bookauthor -->
+
+
+<script>
+
+    let currentBooks = [];
+
+    async function getBooks(){
+        var query = document.getElementById('bookInput').value;
+        console.log(query)
+        var url = 'https://www.googleapis.com/books/v1/volumes?q=' + query;
+        var response = await fetch(url);
+        var currentBooks = await response.json()
+        var bookdata = currentBooks.items
+        document.getElementById('content').innerHTML  = ''
+        for (var index = 0; index < bookdata.length; index++) {
+            document.getElementById('content').innerHTML = (document.getElementById('content').innerHTML  +
+                // insert html code here
+                '<div class=\"field\">' +
+                '<div class=\"is-grouped field\">' +
+                    '<a class=\"icon\" ><img onclick=\"addThisBook(\'' + bookdata[index].volumeInfo.title  + '\',\'' + bookdata[index].volumeInfo.authors[0] + '\')\" class=\"icon icon-text\" src="heart.svg">   &nbsp    </img></a>' +
+                    '<p class=\" Title is-5\"> ' + bookdata[index].volumeInfo.title + ' <p>' +
+                    '<p class=\" Title is-6\"> &nbsp; &nbsp; <p>' +
+                    '<p class=\"\"> ' +  bookdata[index].volumeInfo.authors[0] + ' </p>'+
+                '</div>'
+                + '</div>')
+        }
+    }
+
+    async function showBooks(){
+        data = await fetch('http://localhost:4000/books', {
+            mode: 'cors', // no-cors, *cors, same-origin
+            method: 'GET', // *GET, POST, PUT, DELETE, etc.
+            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: 'same-origin', // include, *same-origin, omit
+        })
+        // data is json
+        data = await data.json()
+        console.log(data.length)
+        // append each data object to the mybooks div
+        document.getElementById('mybooks').innerHTML = ''
+        for (var index = 0; index < data.length; index++) {
+            document.getElementById('mybooks').innerHTML = (document.getElementById('mybooks').innerHTML  +
+                // insert html code here
+                ' <div class="box">' +
+                '            <div class="field columns">' +
+                '                <p class="">' + data[index].booktitle + '</p>' +
+                '                &nbsp; &nbsp; &nbsp; &nbsp;' +
+                '                <p class=" "> ' + data[index].bookauthor + ' </p>' +
+                '        </div>'
+                + '</div>')
+        }
+
+    }
+
+    async function addThisBook(title, author){
+        console.log(author, title)
+        data = {
+            booktitle: title,
+            bookauthor: author
+        }
+        postData('http://localhost:4000/addbook', data)
+    }
+
+
+    async function postData(url = '', data = {}) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: 'same-origin', // include, *same-origin, omit
+            headers: {
+                'Content-Type': 'application/json'
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: 'follow', // manual, *follow, error
+            referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data) // body data type must match "Content-Type" header
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+</script>
+</body>
+</html>
+
